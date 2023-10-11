@@ -72,3 +72,5 @@ cd terraform
 terraform init
 terraform apply -auto-approve
 
+# Get the ICA1 CSR from the Terraform state file and store it in the  csr folder.
+terraform show -json | jq '.values["root_module"]["resources"][].values.csr' -r | grep -v null > csr/${_CA_COMMON_NAME}.csr
