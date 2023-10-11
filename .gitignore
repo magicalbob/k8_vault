@@ -3,4 +3,5 @@ terraform/.terraform
 terraform/.terraform.lock.hcl
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
-
+terraform/cacerts/*.crt
+terraform/csr/*.csr
