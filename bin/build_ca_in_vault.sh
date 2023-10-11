@@ -34,7 +34,7 @@ while true; do
 done
 
 # Set up port forwarding
-kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 &
+kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 2>&1 >/dev/null &
 
 export VAULT_TOKEN=root
 export VAULT_ADDR=http://127.0.0.1:8200
