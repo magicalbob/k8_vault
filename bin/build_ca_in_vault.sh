@@ -15,3 +15,4 @@ certstrap init \
 openssl x509 -in out/Testing_Root.crt -noout  -subject -issuer
 
 # Start Vault
+./bin/install-vault.sh
