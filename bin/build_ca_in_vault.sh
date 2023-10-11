@@ -2,6 +2,8 @@
 
 source ./config.sh
 
+_CA_COMMON_NAME=$(echo ${CA_COMMON_NAME}|sed 's/ /_/g')
+
 # Create an offline Root CA (asks for passphrase entry)
 certstrap init \
      --organization "${CA_ORG}" \
@@ -12,7 +14,7 @@ certstrap init \
      --common-name "$CA_COMMON_NAME"
 
 # Inspect offline Root CA
-openssl x509 -in out/Testing_Root.crt -noout  -subject -issuer
+openssl x509 -in out/${_CA_COMMON_NAME}.crt -noout  -subject -issuer
 
 # Start Vault
 ./bin/install-vault.sh
@@ -31,3 +33,8 @@ while true; do
   fi
 done
 
+export VAULT_TOKEN=root
+
+envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
+cd terraform
+terraform init
