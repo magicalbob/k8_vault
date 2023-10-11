@@ -60,5 +60,5 @@ export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cu
 envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
 cd terraform
 terraform init
-terraform apply
+terraform apply -auto-approve
 
