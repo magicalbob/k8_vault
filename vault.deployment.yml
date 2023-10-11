@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+        - name: vault
+          image: your-vault-image:tag  # Replace with the actual Vault Docker image and tag
+          ports:
+            - containerPort: 8200
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/vault
+            - name: vault-data
+              mountPath: /opt/vault
+      volumes:
+        - name: config-volume
+          configMap:
+            name: vault-config
+        - name: vault-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-config
+  namespace: vault
+data:
+  config.json: |
+    {
+      "backend": {
+        "file": {
+          "path": "/opt/vault"
+        }
+      },
+      "listener": {
+        "tcp": {
+          "address": "0.0.0.0:8200",
+          "tls_cert_file": "/etc/ssl/certs/vault.cert",
+          "tls_key_file": "/etc/ssl/certs/vault.key",
+          "tls_disable": 0
+        }
+      }
+    }
+
