@@ -12,10 +12,10 @@ certstrap init \
      --country "${CA_COUNTRY}" \
      --province "${CA_PROVINCE}" \
      --locality "${CA_LOCALITY}" \
-     --common-name "$CA_COMMON_NAME"
+     --common-name "$CA_NAME"
 
 # Inspect offline Root CA
-openssl x509 -in out/${_CA_COMMON_NAME}.crt -noout  -subject -issuer
+openssl x509 -in out/${_CA_NAME}.crt -noout  -subject -issuer
 
 # Start Vault
 ./bin/install-vault.sh
