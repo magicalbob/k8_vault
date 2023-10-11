@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: vault
-          image: your-vault-image:tag  # Replace with the actual Vault Docker image and tag
+          image: hashicorp/vault:1.15
           ports:
             - containerPort: 8200
           volumeMounts:
