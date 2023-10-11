@@ -33,8 +33,18 @@ while true; do
   fi
 done
 
-# Set up port forwarding
-kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 2>&1 >/dev/null &
+# Start port-forwarding in the background and keep it running
+while true; do
+  kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 2>&1 >/dev/null
+
+  # Check the exit status of the previous command
+  if [ $? -eq 0 ]; then
+    echo "Port-forwarding is running successfully."
+  else
+    echo "Port-forwarding has exited with an error. Restarting..."
+    sleep 5  # Wait for a few seconds before restarting
+  fi
+done &
 
 export VAULT_ADDR=http://127.0.0.1:8200
 
