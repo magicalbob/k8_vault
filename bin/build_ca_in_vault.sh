@@ -33,7 +33,11 @@ while true; do
   fi
 done
 
+# Set up port forwarding
+kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 &
+
 export VAULT_TOKEN=root
+export VAULT_ADDR=http://127.0.0.1:8200
 
 envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
 cd terraform
