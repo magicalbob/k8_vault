@@ -74,3 +74,17 @@ terraform apply -auto-approve
 
 # Get the ICA1 CSR from the Terraform state file and store it in the  csr folder.
 terraform show -json | jq '.values["root_module"]["resources"][].values.csr' -r | grep -v null > csr/${_CA_COMMON_NAME}.csr
+
+# Make sure soft link to ../out is there§
+ln -s ../out out
+
+# Sign ICA1 CSR with the offline Root CA.
+
+certstrap sign \
+     --expires "$CERT_LENGTH" \
+     --csr csr/${_CA_COMMON_NAME}.csr \
+     --cert out/${_CA_COMMON_NAME}.crt \
+     --intermediate \
+     --path-length "1" \
+     --CA "${CA_NAME}" \
+     "${CA_COMMON_NAME}"
