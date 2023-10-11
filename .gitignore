@@ -5,3 +5,5 @@ terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/cacerts/*.crt
 terraform/csr/*.csr
+terraform/main.tf
+terraform/test_org_ica1.tf
