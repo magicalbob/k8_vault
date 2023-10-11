@@ -3,6 +3,7 @@
 source ./config.sh
 
 _CA_COMMON_NAME=$(echo ${CA_COMMON_NAME}|sed 's/ /_/g')
+_CA_NAME=$(echo ${CA_NAME}|sed 's/ /_/g')
 
 # Create an offline Root CA (asks for passphrase entry)
 certstrap init \
@@ -79,7 +80,6 @@ terraform show -json | jq '.values["root_module"]["resources"][].values.csr' -r 
 ln -s ../out out
 
 # Sign ICA1 CSR with the offline Root CA.
-
 certstrap sign \
      --expires "$CERT_LENGTH" \
      --csr csr/${_CA_COMMON_NAME}.csr \
@@ -88,3 +88,6 @@ certstrap sign \
      --path-length "1" \
      --CA "${CA_NAME}" \
      "${CA_COMMON_NAME}"
+
+# Append offline Root CA at the end of ICA1 cert to create CA chain
+cat out/${_CA_COMMON_NAME}.crt out/${_CA_NAME}.crt > cacerts/test_org_v1_ica1_v1.crt
