@@ -91,3 +91,18 @@ certstrap sign \
 
 # Append offline Root CA at the end of ICA1 cert to create CA chain
 cat out/${_CA_COMMON_NAME}.crt out/${_CA_NAME}.crt > cacerts/test_org_v1_ica1_v1.crt
+
+# Update the Terraform code to set the signed cert for ICA1 in Vault.
+cat >> test_org_ica1.tf << EOF
+
+resource "vault_pki_secret_backend_intermediate_set_signed" "test_org_v1_ica1_v1_signed_cert" {
+ depends_on   = [vault_mount.test_org_v1_ica1_v1]
+ backend      = vault_mount.test_org_v1_ica1_v1.path
+
+ certificate = file("\${path.module}/cacerts/test_org_v1_ica1_v1.crt")
+}
+
+EOF
+
+terraform apply -auto-approve
+
