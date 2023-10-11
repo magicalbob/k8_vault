@@ -22,7 +22,7 @@ openssl x509 -in out/${_CA_COMMON_NAME}.crt -noout  -subject -issuer
 # Wait for it to be running
 while true; do
   # Run the kubectl command and capture the output
-  output=$(kubectl get all -n vault 2>&1 > /dev/null)
+  output=$(kubectl get all -n vault 2>&1)
 
   # Check if the output contains the target status
   if [[ $output =~ "Running" ]]; then
@@ -38,10 +38,13 @@ kubectl port-forward deployment.apps/vault -n vault --address 0.0.0.0 8200:8200 
 
 export VAULT_ADDR=http://127.0.0.1:8200
 
+# Get running pod
+RUNNING_POD=$(kubectl get all -n vault|grep Running|cut -d\  -f1)
+
 # Wait for token to be available 
 while true; do
   # Run the kubectl command and capture the output
-  output=$(kubectl get all -n vault 2>&1 > /dev/null)
+  output=$(kubectl logs ${RUNNING_POD} -n vault 2>&1)
 
   # Check if the output contains the target status
   if [[ $output =~ "Root Token" ]]; then
@@ -52,8 +55,6 @@ while true; do
   fi
 done
 
-# Get running pod
-RUNNING_POD=$(kubectl get all -n vault|grep Running|cut -d\  -f1)
 export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cut -d: -f2)
 
 envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
