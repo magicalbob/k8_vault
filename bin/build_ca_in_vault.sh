@@ -70,27 +70,65 @@ export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cu
 
 envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
 cd terraform
+
+# Create main.tf
+cat > main.tf << EOF
+provider "vault" {}
+
+locals {
+ default_3y_in_sec   = 94608000
+ default_1y_in_sec   = 31536000
+ default_1hr_in_sec = 3600
+}
+
+EOF
+
+# Create test_org_ica1.tf
+cat > test_org_ica1.tf << EOF
+resource "vault_mount" "test_org_v1_ica1_v1" {
+ path                      = "test-org/v1/ica1/v1"
+ type                      = "pki"
+ description               = "PKI engine hosting intermediate CA1 v1 for test org"
+ default_lease_ttl_seconds = local.default_1hr_in_sec
+ max_lease_ttl_seconds     = local.default_3y_in_sec
+}
+
+resource "vault_pki_secret_backend_intermediate_cert_request" "test_org_v1_ica1_v1" {
+ depends_on   = [vault_mount.test_org_v1_ica1_v1]
+ backend      = vault_mount.test_org_v1_ica1_v1.path
+ type         = "internal"
+ common_name  = "Intermediate CA1 v1 "
+ key_type     = "rsa"
+ key_bits     = "2048"
+ ou           = "test org"
+ organization = "test"
+ country      = "US"
+ locality     = "Bethesda"
+ province     = "MD"
+}
+EOF
+
 terraform init
 terraform apply -auto-approve
 
 # Get the ICA1 CSR from the Terraform state file and store it in the  csr folder.
-terraform show -json | jq '.values["root_module"]["resources"][].values.csr' -r | grep -v null > csr/test_org_v1_ica1_v1.csr
+terraform show -json | jq '.values["root_module"]["resources"][].values.csr' -r | grep -v null > csr/Test_Org_v1_ICA1_v1.csr
 
 # Make sure soft link to ../out is there§
 ln -s ../out out
 
 # Sign ICA1 CSR with the offline Root CA.
 certstrap sign \
-     --expires "$CERT_LENGTH" \
-     --csr csr/${_CA_COMMON_NAME}.csr \
-     --cert out/terraform/test_org_v1_ica1_v1.crt \
+     --expires "3 year" \
+     --csr csr/Test_Org_v1_ICA1_v1.csr \
+     --cert out/Intermediate_CA1_v1.crt \
      --intermediate \
      --path-length "1" \
-     --CA "${CA_NAME}" \
-     "${CA_COMMON_NAME}"
+     --CA "Testing Root" \
+     "Intermediate CA1 v1"
 
 # Append offline Root CA at the end of ICA1 cert to create CA chain
-cat out/${_CA_COMMON_NAME}.crt out/${_CA_NAME}.crt > cacerts/test_org_v1_ica1_v1.crt
+cat out/Intermediate_CA1_v1.crt out/Testing_Root.crt > cacerts/test_org_v1_ica1_v1.crt
 
 # Update the Terraform code to set the signed cert for ICA1 in Vault.
 cat >> test_org_ica1.tf << EOF
