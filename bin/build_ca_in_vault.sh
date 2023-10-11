@@ -13,3 +13,5 @@ certstrap init \
 
 # Inspect offline Root CA
 openssl x509 -in out/Testing_Root.crt -noout  -subject -issuer
+
+# Start Vault
