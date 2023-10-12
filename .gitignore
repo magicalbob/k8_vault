@@ -1,9 +1,9 @@
 out
-terraform/.terraform
-terraform/.terraform.lock.hcl
-terraform/terraform.tfstate
-terraform/terraform.tfstate.backup
-terraform/cacerts/*.crt
-terraform/csr/*.csr
-terraform/main.tf
-terraform/test_org_ica1.tf
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+cacerts/*.crt
+csr/*.csr
+main.tf
+test_org_ica1.tf

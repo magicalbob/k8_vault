@@ -149,7 +149,7 @@ tree
 terraform init
 
 # Execute the apply command to configure Vault.
-terraform apply
+terraform apply -auto-approve
 
 # Create a new csr folder.
 mkdir csr
@@ -192,7 +192,7 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "test_org_v1_ica1_v1
 EOF
 
 # Apply the Terraform changes to set the signed ICA1 in Vault.
-terraform apply
+terraform apply -auto-approve
 
 # Output should be:
 #...truncated...
