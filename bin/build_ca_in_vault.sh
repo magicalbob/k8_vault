@@ -7,15 +7,15 @@ _CA_NAME=$(echo ${CA_NAME}|sed 's/ /_/g')
 
 # Create an offline Root CA (asks for passphrase entry)
 certstrap init \
-     --organization "${CA_ORG}" \
-     --organizational-unit "${CA_ORG_UNIT}" \
-     --country "${CA_COUNTRY}" \
-     --province "${CA_PROVINCE}" \
-     --locality "${CA_LOCALITY}" \
-     --common-name "$CA_NAME"
+     --organization "Test" \
+     --organizational-unit "Test Org" \
+     --country "US" \
+     --province "MD" \
+     --locality "Bethesda" \
+     --common-name "Testing Root"
 
 # Inspect offline Root CA
-openssl x509 -in out/${_CA_NAME}.crt -noout  -subject -issuer
+openssl x509 -in out/Testing_Root.crt -noout  -subject -issuer
 
 # Start Vault
 ./bin/install-vault.sh
@@ -47,7 +47,7 @@ while true; do
   fi
 done &
 
-export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_ADDR=http://0.0.0.0:8200
 
 # Get running pod
 RUNNING_POD=$(kubectl get all -n vault|grep Running|cut -d\  -f1)
@@ -68,7 +68,6 @@ done
 
 export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cut -d: -f2)
 
-envsubst < test_org_ica1.template > terraform/test_org_ica1.tf
 cd terraform
 
 # Create main.tf
