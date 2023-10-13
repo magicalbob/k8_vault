@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: vault
-          image: hashicorp/vault:1.15
+          image: hashicorp/vault:1.14.4
           ports:
             - containerPort: 8200
           volumeMounts:
