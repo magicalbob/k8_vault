@@ -51,14 +51,19 @@ done
 
 export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cut -d: -f2)
 
+echo "Enabling the pki secrets engine..."
+vault secrets enable -path=my-pki pki
+
 # Initialize offline Root CA
 echo "Initializing offline Root CA..."
-vault write -format=json pki/root/generate/internal common_name="Testing Root" ttl=87600h | jq -r .data.certificate > Testing_Root.crt
+vault write -format=json my-pki/root/generate/internal common_name="Testing Root" ttl=87600h | jq -r .data.certificate > Testing_Root.crt
 
 # Generate Intermediate CA 1 (ICA1) in Vault
 echo "Generating Intermediate CA 1 (ICA1)..."
 vault secrets enable -path=test-org/v1/ica1/v1 pki
-vault write test-org/v1/ica1/v1/intermediate/generate/internal common_name="Intermediate CA1 v1" key_type="rsa" key_bits=2048 | jq -r .data.csr > Intermediate_CA1_v1.csr
+vault write test-org/v1/ica1/v1/intermediate/generate/internal -format=json common_name="Intermediate CA1 v1" key_type="rsa" key_bits=2048 | jq -r .data.csr > Intermediate_CA1_v1.csr
+
+exit 0
 
 # Sign ICA1 CSR with the offline Root CA
 echo "Signing ICA1 CSR with the offline Root CA..."
