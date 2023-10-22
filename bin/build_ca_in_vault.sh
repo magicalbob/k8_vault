@@ -51,6 +51,8 @@ done
 
 export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cut -d: -f2)
 
+# Step 1: generate root CA
+
 # Enable the pki secrets engine at the pki path.
 vault secrets enable pki
 
@@ -79,3 +81,27 @@ vault write pki/roles/2023-servers allow_any_name=true
 vault write pki/config/urls \
       issuing_certificates="$VAULT_ADDR/v1/pki/ca" \
       crl_distribution_points="$VAULT_ADDR/v1/pki/crl"
+
+# Step 2: generate intermediate CA
+
+# First, enable the pki secrets engine at the pki_int path.
+vault secrets enable -path=pki_int pki
+
+# Tune the pki_int secrets engine to issue certificates with a maximum time-to-live (TTL) of 43800 hours.
+vault secrets tune -max-lease-ttl=43800h pki_int
+
+# Execute the following command to generate an intermediate and save the CSR as pki_intermediate.csr.
+vault write -format=json pki_int/intermediate/generate/internal \
+     common_name="example.com Intermediate Authority" \
+     issuer_name="example-dot-com-intermediate" \
+     | jq -r '.data.csr' > pki_intermediate.csr
+
+# Sign the intermediate certificate with the root CA private key, and save the generated certificate as intermediate.cert.pem.
+vault write -format=json pki/root/sign-intermediate \
+     issuer_ref="root-2023" \
+     csr=@pki_intermediate.csr \
+     format=pem_bundle ttl="43800h" \
+     | jq -r '.data.certificate' > intermediate.cert.pem
+
+# Once the CSR is signed and the root CA returns a certificate, it can be imported back into Vault.
+vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
