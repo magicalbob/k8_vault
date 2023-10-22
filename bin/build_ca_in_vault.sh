@@ -105,3 +105,15 @@ vault write -format=json pki/root/sign-intermediate \
 
 # Once the CSR is signed and the root CA returns a certificate, it can be imported back into Vault.
 vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
+
+# Step 3: create a role
+
+# A role is a logical name that maps to a policy used to generate those credentials. It allows configuration parameters to control certificate common names, alternate names, the key uses that they are valid for, and more.
+
+# Create a role named example-dot-com which allows subdomains, and specify the default issuer ref ID as the value of issuer_ref.
+vault write pki_int/roles/example-dot-com \
+     issuer_ref="$(vault read -field=default pki_int/config/issuers)" \
+     allowed_domains="example.com" \
+     allow_subdomains=true \
+     max_ttl="720h"
+
