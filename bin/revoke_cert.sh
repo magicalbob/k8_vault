@@ -37,7 +37,7 @@ if [ -z "$serial_number" ]; then
   exit 1
 fi
 
-# Step 4: revoke certificates
+# Step 5: revoke certificates
 # To revoke a certificate, execute the following command, replacing the <serial_number> placeholder with the actual serial number of the certificate you want to revoke.
 vault write pki_int/revoke serial_number="${serial_number}"
 
