@@ -30,7 +30,7 @@ while true; do
   fi
 done &
 
-export VAULT_ADDR=http://0.0.0.0:8200
+export VAULT_ADDR=http://192.168.56.201:8200
 
 # Get running pod
 RUNNING_POD=$(kubectl get all -n vault|grep Running|cut -d\  -f1)
@@ -50,3 +50,32 @@ while true; do
 done
 
 export VAULT_TOKEN=$(kubectl logs $RUNNING_POD -n vault | grep "Root Token" | cut -d: -f2)
+
+# Enable the pki secrets engine at the pki path.
+vault secrets enable pki
+
+# Tune the pki secrets engine to issue certificates with a maximum time-to-live (TTL) of 87600 hours.
+vault secrets tune -max-lease-ttl=87600h pki
+
+# Generate the example.com root CA, give it an issuer name, and save its certificate in the file root_2023_ca.crt.
+vault write -field=certificate \
+      pki/root/generate/internal \
+      common_name="example.com" \
+      issuer_name="root-2023" \
+      ttl=87600h > root_2023_ca.crt
+
+# List the issuer information for the root CA.
+vault list pki/issuers/
+
+# You can read the issuer with its ID to get the certificates and other metadata about the issuer. Let's skip the certificate output, but list the issuer metadata and usage information.
+vault read pki/issuer/$(vault list -format=json pki/issuers/ | \
+      jq -r '.[]')  | \
+      tail -n 6
+
+# Create a role for the root CA. 
+vault write pki/roles/2023-servers allow_any_name=true
+
+# Configure the CA and CRL URLs.
+vault write pki/config/urls \
+      issuing_certificates="$VAULT_ADDR/v1/pki/ca" \
+      crl_distribution_points="$VAULT_ADDR/v1/pki/crl"

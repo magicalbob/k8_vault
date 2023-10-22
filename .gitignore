@@ -4,3 +4,4 @@ Intermediate_CA2_v1.crt
 Intermediate_CA2_v1.csr
 Testing_Root.crt
 client_certificate.crt
+root_2023_ca.crt
